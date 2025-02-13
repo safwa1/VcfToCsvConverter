@@ -42,9 +42,12 @@ public static class VcfConverter
             }
             else if (currentContact != null)
             {
+                Console.WriteLine(line);
+                Console.WriteLine("=====================");
                 if (line.StartsWith("FN:"))
                 {
-                    currentContact.FullName = line[3..];
+                    var name = line[3..];
+                    currentContact.FullName = name;
                 }
                 else if (line.StartsWith("TEL"))
                 {
@@ -52,6 +55,14 @@ public static class VcfConverter
                     if (!string.IsNullOrEmpty(phoneNumber))
                     {
                         currentContact.PhoneNumbers.Add(phoneNumber);
+                    }
+                }
+                else if (line.StartsWith("EMAIL"))
+                {
+                    var email = ExtractPhoneNumber(line);
+                    if (!string.IsNullOrEmpty(email))
+                    {
+                        currentContact.Emails.Add(email);
                     }
                 }
             }
