@@ -82,12 +82,13 @@ public static class VcfConverter
     private static void WriteCsvFile(string filePath, List<Contact> contacts)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("FullName,PhoneNumbers");
+        sb.AppendLine("FullName,PhoneNumbers,Emails");
 
         foreach (var contact in contacts)
         {
             var phones = string.Join(";", contact.PhoneNumbers);
-            sb.AppendLine($"\"{Escape(contact.FullName)}\",\"{Escape(phones)}\"");
+            var emails = string.Join(";", contact.Emails);
+            sb.AppendLine($"\"{Escape(contact.FullName)}\",\"{Escape(phones)}\",\"{Escape(emails)}\"");
         }
 
         File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
