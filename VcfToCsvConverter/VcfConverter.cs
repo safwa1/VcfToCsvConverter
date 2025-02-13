@@ -4,6 +4,8 @@ namespace VcfToCsvConverter;
 
 public static class VcfConverter
 {
+    private const string SearchTerm = "pref:";
+    
     public static bool Convert(string vcfFilePath, string csvFilePath)
     {
         try
@@ -23,66 +25,58 @@ public static class VcfConverter
 
     private static List<Contact> ReadVcfFile(string filePath)
     {
-        List<Contact> contacts = [];
+        var contacts = new List<Contact>();
         Contact? currentContact = null;
 
         foreach (var line in File.ReadLines(filePath))
         {
-            if (line.StartsWith("BEGIN:VCARD"))
+            switch (line)
             {
-                currentContact = new Contact();
-            }
-            else if (line.StartsWith("END:VCARD"))
-            {
-                if (currentContact != null)
-                {
-                    contacts.Add(currentContact);
-                    currentContact = null;
-                }
-            }
-            else if (currentContact != null)
-            {
-                Console.WriteLine(line);
-                Console.WriteLine("=====================");
-                if (line.StartsWith("FN:"))
-                {
-                    var name = line[3..];
-                    currentContact.FullName = name;
-                }
-                else if (line.StartsWith("TEL"))
-                {
-                    var phoneNumber = ExtractPhoneNumber(line);
-                    if (!string.IsNullOrEmpty(phoneNumber))
+                case not null when line.StartsWith("BEGIN:VCARD"):
+                    currentContact = new Contact();
+                    break;
+
+                case not null when line.StartsWith("END:VCARD"):
+                    if (currentContact != null)
                     {
-                        currentContact.PhoneNumbers.Add(phoneNumber);
+                        contacts.Add(currentContact);
+                        currentContact = null;
                     }
-                }
-                else if (line.StartsWith("EMAIL"))
-                {
-                    var email = ExtractPhoneNumber(line);
-                    if (!string.IsNullOrEmpty(email))
+                    break;
+
+                case not null when currentContact != null:
+                    if (line.StartsWith("FN:"))
                     {
-                        currentContact.Emails.Add(email);
+                        currentContact.FullName = line[3..];
                     }
-                }
+                    else if (line.StartsWith("TEL"))
+                    {
+                        var phoneNumber = ExtractValue(line);
+                        if (!string.IsNullOrEmpty(phoneNumber))
+                        {
+                            currentContact.PhoneNumbers.Add(phoneNumber);
+                        }
+                    }
+                    else if (line.StartsWith("EMAIL"))
+                    {
+                        var email = ExtractValue(line);
+                        if (!string.IsNullOrEmpty(email))
+                        {
+                            currentContact.Emails.Add(email);
+                        }
+                    }
+                    break;
             }
         }
 
         return contacts;
     }
 
-    private static string? ExtractPhoneNumber(string input)
+
+    private static string? ExtractValue(string input)
     {
-        string searchTerm = "pref:";
-        int index = input.IndexOf(searchTerm, StringComparison.InvariantCultureIgnoreCase);
-
-        if (index != -1)
-        {
-            // Extract substring from "pref:" to the end of the string
-            return input[(index + searchTerm.Length)..];
-        }
-
-        return null;
+        int index = input.IndexOf(SearchTerm, StringComparison.InvariantCultureIgnoreCase);
+        return index != -1 ? input[(index + SearchTerm.Length)..] : null;
     }
     
     private static void WriteCsvFile(string filePath, List<Contact> contacts)
