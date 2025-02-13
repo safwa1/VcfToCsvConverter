@@ -15,7 +15,7 @@ internal static class Program
         
         VcfConverter.Convert(vcfFilePath, csvFilePath);
         
-        if (args is [_, "--print"] || args[1] == "-p")
+        if (args is [_, "--print"] or [_, "-p"])
         {
             VcfConverter.PrintCsvAsTable(csvFilePath);
         }
